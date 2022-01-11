@@ -30,6 +30,10 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    iblock: {
+      url: 'https://chain.iblockcore.com',
+      accounts: [process.env.IBLOCK_PRIVATE_KEY],
+    }
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,

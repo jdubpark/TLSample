@@ -8,24 +8,26 @@ const { expect } = require('chai')
 
 const { BigNumber } = ethers
 const { AddressZero } = ethers.constants
-const { defaultAbiCoder, keccak256, SigningKey, solidityPack, toUtf8Bytes } = ethers.utils
+const {
+  defaultAbiCoder, keccak256, SigningKey, solidityPack, toUtf8Bytes,
+} = ethers.utils
 
 const TOKEN_NAME = 'Sample Coin'
 const TOKEN_SYMBOL = 'SAM'
 const TOKEN_INITIAL_SUPPLY = 10e9 // equivalent to total supply initially
-const TOKEN_VERSION = '1'
+const TOKEN_VERSION = '2.0.0'
 
 const OWNER_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
 const HARDHAT_CHAIN_ID = 31337 // default localhost chainId
 
-
-/// Returns the Eip712 domain separator.
 /**
  * Returns the EIP712 domain separator
  * @param {string} name
  * @param {number} chainId
  * @param {string} tokenAddress
  * @returns {string}
+ *
+ * Refer to https://eips.ethereum.org/EIPS/eip-2612#specification
  */
 const getDomainSeparator = (name, chainId, tokenAddress) => keccak256(
   defaultAbiCoder.encode(
@@ -66,12 +68,13 @@ const fakeSig = {
  * @param {BigNumber} nonce
  * @param {BigNumber} deadline
  * @returns {Promise<string>}
+ *
+ * Refer to https://eips.ethereum.org/EIPS/eip-2612#specification
  */
-async function getPermitDigest(
-  token, chainId, approve, nonce, deadline,
-) {
-  const tokenName = await token.name()
-  const DOMAIN_SEPARATOR = getDomainSeparator(tokenName, chainId, token.address)
+async function getPermitDigest(token, chainId, approve, nonce, deadline) {
+  // const tokenName = await token.name()
+  const tokenName = TOKEN_NAME
+  const DOMAIN_SEPARATOR = getDomainSeparator(tokenName, chainId, token.address) // token.address is used here
   return keccak256(
     solidityPack(
       ['bytes1', 'bytes1', 'bytes32', 'bytes32'],
@@ -122,13 +125,13 @@ async function createSignature(token, deadline, owner, spender, amount) {
 }
 
 describe('SampleCoin Contract', () => {
-  let SAMTokenFactory;
-  let SAM;
-  let owner;
-  let addr1;
-  let addr2;
-  let addrs;
-  let spender;
+  let SAMTokenFactory
+  let SAM
+  let owner
+  let addr1
+  let addr2
+  let addrs
+  let spender
 
   beforeEach(async () => {
     // Get the ContractFactory and Signers here.
@@ -140,7 +143,7 @@ describe('SampleCoin Contract', () => {
     // To deploy our contract, we just have to call Token.deploy() and await for it to be
     // deployed(), which happens once its transaction has been mined.
     SAM = await SAMTokenFactory.deploy(TOKEN_NAME, TOKEN_SYMBOL, TOKEN_INITIAL_SUPPLY) // { from: owner }
-  });
+  })
 
   /*
   describe('Deployment', () => {
@@ -196,7 +199,7 @@ describe('SampleCoin Contract', () => {
 
   describe('ERC20Permit Behaviors', () => {
     describe('Views', () => {
-      it('Retrieves the proper DOMAIN_SEPARATOR', async function () {
+      it('Retrieves the proper DOMAIN_SEPARATOR', async () => {
         const domainSeparator = getDomainSeparator(
           TOKEN_NAME,
           network.config.chainId || HARDHAT_CHAIN_ID,
@@ -246,7 +249,7 @@ describe('SampleCoin Contract', () => {
 
           const allowance = await SAM.allowance(owner, spender)
           expect(allowance).to.equal(allowAmt)
-        });
+        })
       })
 
       /*
